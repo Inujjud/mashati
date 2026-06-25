@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكم | مشاتي السعودية</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preload" href="Kufam.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body data-page="admin" class="admin-body">
+
+<!-- ============ LOGIN GATE ============ -->
+<div id="login-gate" class="login-gate">
+  <form id="login-form" class="login-card">
+    <a class="brand" href="index.html" style="justify-content:center;margin-bottom:18px">
+      <img src="logo.png" alt="مشاتي السعودية" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><span class="brand-mark" aria-hidden="true" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--gold-2)"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg></span>
+    </a>
+    <span class="eyebrow" style="justify-content:center">لوحة التحكم</span>
+    <h2>تسجيل الدخول</h2>
+    <p class="muted">أدخلي كلمة المرور للوصول إلى لوحة الإدارة.</p>
+    <div class="field">
+      <label>كلمة المرور</label>
+      <input id="admin-pass" type="password" placeholder="••••••••" autocomplete="current-password" required>
+    </div>
+    <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center">دخول</button>
+    <p id="login-error" class="login-error"></p>
+    <a href="index.html" class="back-link">العودة إلى الموقع</a>
+  </form>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dashboard" class="dashboard" hidden>
+  <header class="admin-header">
+    <div class="admin-bar">
+      <a class="brand" href="index.html">
+        <img src="logo.png" alt="مشاتي السعودية" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><span class="brand-mark" aria-hidden="true" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--gold-2)"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg></span>
+        <span class="brand-text"><b>لوحة التحكم</b><span>SAUDI MSHATI</span></span>
+      </a>
+      <div class="admin-actions">
+        <a href="index.html" class="btn btn-ghost btn-sm">عرض الموقع</a>
+        <button id="logout-btn" class="btn btn-sm">خروج</button>
+      </div>
+    </div>
+    <nav class="admin-tabs">
+      <button class="tab-btn active" data-tab="analytics">التحليلات</button>
+      <button class="tab-btn" data-tab="projects">المشاريع</button>
+      <button class="tab-btn" data-tab="images">صور الموقع</button>
+      <button class="tab-btn" data-tab="quotes">طلبات عروض الأسعار</button>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+
+    <!-- ===== ANALYTICS ===== -->
+    <section class="tab-panel active" id="tab-analytics">
+      <div class="panel-head"><h3>تحليلات الزيارات</h3><button class="btn btn-ghost btn-sm" data-refresh="analytics">تحديث</button></div>
+      <div class="stat-cards" id="stat-cards"><div class="state-msg">جارٍ التحميل…</div></div>
+      <div class="card" style="margin-top:18px">
+        <h4 class="card-title">الزيارات حسب الصفحة</h4>
+        <div id="page-bars"></div>
+      </div>
+    </section>
+
+    <!-- ===== PROJECTS ===== -->
+    <section class="tab-panel" id="tab-projects" hidden>
+      <div class="panel-head"><h3>إدارة المشاريع</h3><button class="btn btn-ghost btn-sm" data-refresh="projects">تحديث</button></div>
+      <div class="admin-grid">
+        <div class="card">
+          <h4 class="card-title" id="proj-form-title">إضافة مشروع جديد</h4>
+          <form id="project-form">
+            <input type="hidden" name="id">
+            <div class="field"><label>عنوان المشروع</label><input name="title" type="text" placeholder="اسم المشروع" required></div>
+            <div class="field"><label>الوصف</label><textarea name="description" placeholder="وصف مختصر للمشروع"></textarea></div>
+            <div class="field"><label>التصنيف</label>
+              <select name="category" required>
+                <option value="structural">إنشائية</option>
+                <option value="finishing">تشطيبات</option>
+                <option value="landscape">زراعة وتنسيق</option>
+                <option value="heritage">تراث وترميم</option>
+              </select>
+            </div>
+            <div class="field"><label>الترتيب</label><input name="sort" type="number" value="0"></div>
+            <div class="field"><label>صورة المشروع</label><input id="proj-image" type="file" accept="image/*"></div>
+            <div class="upload-preview" id="proj-preview" hidden><img alt=""></div>
+            <div class="form-row">
+              <button type="submit" class="btn btn-gold btn-sm">حفظ المشروع</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="proj-reset" hidden>إلغاء التعديل</button>
+            </div>
+          </form>
+        </div>
+        <div class="card">
+          <h4 class="card-title">المشاريع المنشورة</h4>
+          <div id="projects-admin-list"><div class="state-msg">جارٍ التحميل…</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== IMAGES ===== -->
+    <section class="tab-panel" id="tab-images" hidden>
+      <div class="panel-head"><h3>صور الموقع</h3><button class="btn btn-ghost btn-sm" data-refresh="images">تحديث</button></div>
+      <p class="muted" style="margin-bottom:18px">ارفعي صورة لكل موضع في الموقع. تُحدّث الصورة مباشرةً على الصفحات بعد الرفع.</p>
+      <div class="image-slots" id="image-slots"><div class="state-msg">جارٍ التحميل…</div></div>
+    </section>
+
+    <!-- ===== QUOTES ===== -->
+    <section class="tab-panel" id="tab-quotes" hidden>
+      <div class="panel-head"><h3>طلبات عروض الأسعار</h3><button class="btn btn-ghost btn-sm" data-refresh="quotes">تحديث</button></div>
+      <div id="quotes-list"><div class="state-msg">جارٍ التحميل…</div></div>
+    </section>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
