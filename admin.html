@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكم | مشاتي السعودية</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preload" href="Kufam.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<style>
+/* ===== أنماط لوحة التحكم (مدمجة + ألوان مستقلة عن ثيم الموقع) ===== */
+.admin-body {
+  /* تعريف ألوان اللوحة محلياً حتى لا تعتمد على ثيم الموقع (الفاتح) */
+  --ink: #0c0b0a; --panel: #16140f; --line: #2a2622;
+  --muted: #9a9388; --sand: #e9e2d6;
+  --gold: #c7a15c; --gold-2: #d9b777;
+  --red: #c8102e; --red-2: #e23b50; --red-soft: rgba(200,16,46,.14);
+  background: var(--ink); color: var(--sand); min-height: 100vh;
+}
+.admin-body .muted { color: var(--muted); }
+.admin-body label { color: var(--sand); display: block; margin-bottom: 6px; font-size: .9rem; font-weight: 600; }
+.admin-body input, .admin-body textarea, .admin-body select {
+  width: 100%; background: #0c0b0a; border: 1px solid var(--line); color: var(--sand);
+  border-radius: 10px; padding: 12px 14px; font: inherit; font-size: .95rem;
+}
+.admin-body input:focus, .admin-body textarea:focus, .admin-body select:focus {
+  outline: none; border-color: var(--gold-2);
+}
+.admin-body input::placeholder { color: #6b655c; }
+.admin-body .btn-gold { background: var(--red); color: #fff; border: 0; }
+.admin-body .btn-gold:hover { background: var(--red-2); }
+.login-gate { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+/* ضمان الإخفاء الفعلي: السمة hidden تتغلّب على أي قاعدة عرض أخرى */
+#login-gate[hidden], #dashboard[hidden] { display: none !important; }
+.login-card { width: 100%; max-width: 400px; background: var(--panel, #16140f); border: 1px solid var(--line, #2a2622); border-radius: 18px; padding: 38px 30px; text-align: center; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+.login-card h2 { margin: 6px 0 8px; font-family: var(--font-display); }
+.login-card .field { text-align: right; margin-top: 18px; }
+.login-error { color: #e23b50; min-height: 20px; margin-top: 12px; font-size: .9rem; font-weight: 600; }
+.back-link { display: inline-block; margin-top: 16px; color: var(--muted, #9a9388); font-size: .85rem; }
+.back-link:hover { color: var(--gold-2, #d9b777); }
+.admin-header { position: sticky; top: 0; z-index: 40; background: rgba(12,11,10,.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line, #2a2622); }
+.admin-bar { max-width: 1180px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.admin-actions { display: flex; gap: 10px; align-items: center; }
+.admin-tabs { max-width: 1180px; margin: 0 auto; padding: 0 24px; display: flex; gap: 4px; flex-wrap: wrap; overflow-x: auto; }
+.tab-btn { background: transparent; border: 0; color: var(--muted, #9a9388); font-family: var(--font, sans-serif); font-size: .95rem; font-weight: 600; padding: 14px 16px; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color .2s, border-color .2s; }
+.tab-btn:hover { color: var(--sand, #e9e2d6); }
+.tab-btn.active { color: var(--gold-2, #d9b777); border-bottom-color: var(--red, #c8102e); }
+.admin-main { max-width: 1180px; margin: 0 auto; padding: 30px 24px 80px; }
+.tab-panel { animation: fade .25s ease; }
+.tab-panel[hidden] { display: none; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; }
+.panel-head h3 { font-family: var(--font-display); font-size: 1.4rem; }
+.btn-sm { padding: 9px 16px; font-size: .85rem; }
+.btn-ghost { background: transparent; border: 1px solid var(--line, #2a2622); color: var(--sand, #e9e2d6); }
+.btn-ghost:hover { border-color: var(--gold-2, #d9b777); color: var(--gold-2, #d9b777); }
+#logout-btn { background: transparent; border: 1px solid #5a2a26; color: #e23b50; }
+#logout-btn:hover { background: #5a2a26; color: #fff; }
+.card { background: var(--panel, #16140f); border: 1px solid var(--line, #2a2622); border-radius: 16px; padding: 22px; }
+.card-title { font-family: var(--font-display); font-size: 1.05rem; margin-bottom: 16px; color: var(--sand, #e9e2d6); }
+.admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+.stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); gap: 16px; }
+.stat-card { background: var(--panel, #16140f); border: 1px solid var(--line, #2a2622); border-radius: 16px; padding: 22px; position: relative; overflow: hidden; }
+.stat-card::after { content: ""; position: absolute; top: 0; inset-inline-start: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--red, #c8102e), var(--gold, #c7a15c)); }
+.stat-card .stat-num { font-family: var(--font-display); font-size: 2.1rem; color: var(--gold-2, #d9b777); line-height: 1; }
+.stat-card .stat-label { color: var(--muted, #9a9388); margin-top: 8px; font-size: .9rem; }
+.page-bar { margin-bottom: 14px; }
+.page-bar .pb-top { display: flex; justify-content: space-between; font-size: .9rem; margin-bottom: 6px; }
+.page-bar .pb-top b { color: var(--sand, #e9e2d6); }
+.page-bar .pb-track { height: 9px; background: #0c0b0a; border-radius: 6px; overflow: hidden; }
+.page-bar .pb-fill { height: 100%; background: linear-gradient(90deg, var(--red, #c8102e), var(--gold-2, #d9b777)); border-radius: 6px; }
+.form-row { display: flex; gap: 10px; margin-top: 6px; }
+.upload-preview { margin: 12px 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--line,#2a2622); }
+.upload-preview img { width: 100%; max-height: 200px; object-fit: cover; display: block; }
+.admin-item { display: flex; gap: 14px; align-items: center; padding: 12px; border: 1px solid var(--line, #2a2622); border-radius: 12px; margin-bottom: 12px; background: rgba(255,255,255,.015); }
+.admin-item .thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; flex: none; background: #0c0b0a center/cover no-repeat; display: grid; place-items: center; color: var(--muted,#9a9388); }
+.admin-item .thumb svg { width: 26px; height: 26px; }
+.admin-item .meta { flex: 1; min-width: 0; }
+.admin-item .meta b { display: block; color: var(--sand,#e9e2d6); }
+.admin-item .meta small { color: var(--muted,#9a9388); }
+.admin-item .meta .cat-tag { display: inline-block; font-size: .72rem; padding: 2px 9px; border-radius: 20px; background: var(--red-soft, rgba(200,16,46,.14)); color: var(--red-2,#e23b50); margin-top: 4px; }
+.admin-item .ops { display: flex; gap: 6px; flex: none; }
+.icon-btn { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: transparent; border: 1px solid var(--line,#2a2622); color: var(--sand,#e9e2d6); cursor: pointer; }
+.icon-btn svg { width: 16px; height: 16px; }
+.icon-btn:hover { border-color: var(--gold-2,#d9b777); color: var(--gold-2,#d9b777); }
+.icon-btn.del:hover { border-color: #e23b50; color: #e23b50; }
+.image-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 18px; }
+.slot-card { background: var(--panel,#16140f); border: 1px solid var(--line,#2a2622); border-radius: 16px; overflow: hidden; }
+.slot-card .slot-img { height: 150px; background: #0c0b0a center/cover no-repeat; display: grid; place-items: center; color: var(--muted,#9a9388); }
+.slot-card .slot-img svg { width: 30px; height: 30px; opacity: .5; }
+.slot-card .slot-body { padding: 14px; }
+.slot-card .slot-body b { color: var(--sand,#e9e2d6); display: block; margin-bottom: 4px; }
+.slot-card .slot-body small { color: var(--muted,#9a9388); font-size: .78rem; }
+.slot-upload { margin-top: 10px; }
+.slot-upload label { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px; border: 1px dashed var(--line,#2a2622); border-radius: 10px; color: var(--gold-2,#d9b777); cursor: pointer; font-size: .85rem; font-weight: 600; }
+.slot-upload label:hover { border-color: var(--gold-2,#d9b777); background: rgba(217,183,119,.06); }
+.slot-upload input { display: none; }
+.slot-card.busy { opacity: .55; pointer-events: none; }
+.quote-card { background: var(--panel,#16140f); border: 1px solid var(--line,#2a2622); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+.quote-card .qc-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+.quote-card .qc-head b { color: var(--sand,#e9e2d6); font-size: 1.05rem; }
+.quote-card .qc-date { color: var(--muted,#9a9388); font-size: .8rem; }
+.quote-card .qc-row { margin-top: 8px; font-size: .92rem; color: var(--sand,#e9e2d6); }
+.quote-card .qc-row span { color: var(--muted,#9a9388); }
+.quote-card .qc-msg { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line,#2a2622); color: #c9c2b6; font-size: .9rem; }
+.quote-card .qc-actions { margin-top: 12px; display: flex; gap: 8px; }
+.wa-link { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; color: #25D366; }
+.wa-link svg { width: 15px; height: 15px; }
+.state-msg { padding: 24px; text-align: center; color: var(--muted,#9a9388); }
+.toast { position: fixed; inset-block-end: 24px; inset-inline-start: 50%; transform: translate(-50%, 20px); background: #16140f; border: 1px solid var(--line,#2a2622); color: var(--sand,#e9e2d6); padding: 12px 20px; border-radius: 10px; font-size: .9rem; opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; z-index: 80; box-shadow: 0 14px 40px rgba(0,0,0,.5); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.err { border-color: #5a2a26; color: #e23b50; }
+@media (max-width: 760px) { .admin-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-page="admin" class="admin-body">
+
+<!-- ============ LOGIN GATE ============ -->
+<div id="login-gate" class="login-gate">
+  <form id="login-form" class="login-card">
+    <a class="brand" href="index.html" style="justify-content:center;margin-bottom:18px">
+      <img src="logo.png" alt="مشاتي السعودية" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><span class="brand-mark" aria-hidden="true" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--gold-2)"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg></span>
+    </a>
+    <span class="eyebrow" style="justify-content:center">لوحة التحكم</span>
+    <h2>تسجيل الدخول</h2>
+    <p class="muted">أدخلي كلمة المرور للوصول إلى لوحة الإدارة.</p>
+    <div class="field">
+      <label>كلمة المرور</label>
+      <input id="admin-pass" type="password" placeholder="••••••••" autocomplete="current-password" required>
+    </div>
+    <button type="button" id="login-btn" onclick="window.mshatiLogin && window.mshatiLogin()" class="btn btn-gold" style="width:100%;justify-content:center">دخول</button>
+    <p id="login-error" class="login-error"></p>
+    <a href="index.html" class="back-link">العودة إلى الموقع</a>
+    <p class="muted" style="margin-top:14px;font-size:.72rem;opacity:.6">إصدار اللوحة v2.4</p>
+  </form>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dashboard" class="dashboard" hidden>
+  <header class="admin-header">
+    <div class="admin-bar">
+      <a class="brand" href="index.html">
+        <img src="logo.png" alt="مشاتي السعودية" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><span class="brand-mark" aria-hidden="true" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--gold-2)"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg></span>
+        <span class="brand-text"><b>لوحة التحكم</b><span>SAUDI MSHATI</span></span>
+      </a>
+      <div class="admin-actions">
+        <a href="index.html" class="btn btn-ghost btn-sm">عرض الموقع</a>
+        <button id="logout-btn" class="btn btn-sm">خروج</button>
+      </div>
+    </div>
+    <nav class="admin-tabs">
+      <button class="tab-btn active" data-tab="analytics">التحليلات</button>
+      <button class="tab-btn" data-tab="projects">المشاريع</button>
+      <button class="tab-btn" data-tab="images">صور الموقع</button>
+      <button class="tab-btn" data-tab="quotes">طلبات عروض الأسعار</button>
+    </nav>
+  </header>
+
+  <main class="admin-main">
+
+    <!-- ===== ANALYTICS ===== -->
+    <section class="tab-panel active" id="tab-analytics">
+      <div class="panel-head"><h3>تحليلات الزيارات</h3><button class="btn btn-ghost btn-sm" data-refresh="analytics">تحديث</button></div>
+      <div class="stat-cards" id="stat-cards"><div class="state-msg">جارٍ التحميل…</div></div>
+      <div class="card" style="margin-top:18px">
+        <h4 class="card-title">الزيارات حسب الصفحة</h4>
+        <div id="page-bars"></div>
+      </div>
+    </section>
+
+    <!-- ===== PROJECTS ===== -->
+    <section class="tab-panel" id="tab-projects" hidden>
+      <div class="panel-head"><h3>إدارة المشاريع</h3><button class="btn btn-ghost btn-sm" data-refresh="projects">تحديث</button></div>
+      <div class="admin-grid">
+        <div class="card">
+          <h4 class="card-title" id="proj-form-title">إضافة مشروع جديد</h4>
+          <form id="project-form">
+            <input type="hidden" name="id">
+            <div class="field"><label>عنوان المشروع</label><input name="title" type="text" placeholder="اسم المشروع" required></div>
+            <div class="field"><label>الوصف</label><textarea name="description" placeholder="وصف مختصر للمشروع"></textarea></div>
+            <div class="field"><label>التصنيف</label>
+              <select name="category" required>
+                <option value="structural">إنشائية</option>
+                <option value="finishing">تشطيبات</option>
+                <option value="landscape">زراعة وتنسيق</option>
+                <option value="heritage">تراث وترميم</option>
+              </select>
+            </div>
+            <div class="field"><label>الترتيب</label><input name="sort" type="number" value="0"></div>
+            <div class="field"><label>صورة المشروع</label><input id="proj-image" type="file" accept="image/*"></div>
+            <div class="upload-preview" id="proj-preview" hidden><img alt=""></div>
+            <div class="form-row">
+              <button type="submit" class="btn btn-gold btn-sm">حفظ المشروع</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="proj-reset" hidden>إلغاء التعديل</button>
+            </div>
+          </form>
+        </div>
+        <div class="card">
+          <h4 class="card-title">المشاريع المنشورة</h4>
+          <div id="projects-admin-list"><div class="state-msg">جارٍ التحميل…</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== IMAGES ===== -->
+    <section class="tab-panel" id="tab-images" hidden>
+      <div class="panel-head"><h3>صور الموقع</h3><button class="btn btn-ghost btn-sm" data-refresh="images">تحديث</button></div>
+      <p class="muted" style="margin-bottom:18px">ارفعي صورة لكل موضع في الموقع. تُحدّث الصورة مباشرةً على الصفحات بعد الرفع.</p>
+      <div class="image-slots" id="image-slots"><div class="state-msg">جارٍ التحميل…</div></div>
+    </section>
+
+    <!-- ===== QUOTES ===== -->
+    <section class="tab-panel" id="tab-quotes" hidden>
+      <div class="panel-head"><h3>طلبات عروض الأسعار</h3><button class="btn btn-ghost btn-sm" data-refresh="quotes">تحديث</button></div>
+      <div id="quotes-list"><div class="state-msg">جارٍ التحميل…</div></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============================================================
+     إعدادات + منطق لوحة التحكم مدمجة هنا (صفحة مستقلة)
+     لتسجيل الدخول لا تحتاج أي ملف خارجي غير style.css و admin.css
+     ============================================================ -->
+<!-- الاتصال بقاعدة البيانات يتم عبر fetch مباشرةً داخل السكربت أدناه — بدون مكتبة خارجية من CDN -->
+
+<script>
+/* ---------- الإعدادات (مدمجة) ---------- */
+window.MSHATI_CONFIG = window.MSHATI_CONFIG || {
+  SUPABASE_URL: 'https://spnxtifvnzoptqpchsic.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_H6CmzlBy_YnG5fIwdE4o8A_pIbOCugd',
+  WHATSAPP: '966567714127',
+  PHONE: '966567714127',
+  WHATSAPP_MSG: 'السلام عليكم، أرغب بالاستفسار عن خدمات مشاتي السعودية',
+  ADMIN_PASSWORD: 'Mm332211',
+  BUCKET: 'site-images'
+};
+</script>
+<script>
+/* ============================================================
+   مشاتي السعودية — لوحة التحكم (Supabase) — منطق مدمج
+   التحقق من كلمة المرور يتم في المتصفح فقط (حماية بسيطة).
+   ============================================================ */
+(function () {
+  const CFG = window.MSHATI_CONFIG || {};
+  const BUCKET = CFG.BUCKET || 'site-images';
+
+  // ====================================================================
+  // اتصال مباشر بقاعدة البيانات عبر fetch — بدون مكتبة خارجية من CDN.
+  // السبب: مكتبة supabase-js كانت تُحمّل من cdn.jsdelivr.net، وقد تُحجب أو
+  // تتأخّر لدى بعض مزوّدي الإنترنت، فتبقى اللوحة عالقة على «جارٍ التحميل…».
+  // هذا العميل المصغّر يدعم كل ما تحتاجه اللوحة: select / insert / update /
+  // delete / eq / order، بالإضافة إلى رفع الصور للتخزين.
+  // ====================================================================
+  function makeClient(baseUrl, key) {
+    const rest = baseUrl + '/rest/v1';
+    const hdr = (extra) => Object.assign({ apikey: key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' }, extra || {});
+    function qb(table) {
+      const st = { table: table, method: 'GET', cols: '*', order: null, filters: [], body: null };
+      const b = {
+        select: function (c) { st.cols = c || '*'; return b; },
+        insert: function (r) { st.method = 'POST'; st.body = r; return b; },
+        update: function (r) { st.method = 'PATCH'; st.body = r; return b; },
+        delete: function () { st.method = 'DELETE'; return b; },
+        eq: function (c, v) { st.filters.push(c + '=eq.' + encodeURIComponent(v)); return b; },
+        order: function (c, o) { st.order = c + '.' + ((!o || o.ascending !== false) ? 'asc' : 'desc'); return b; },
+        then: function (res, rej) { return exec(st).then(res, rej); }
+      };
+      return b;
+    }
+    function exec(st) {
+      let url = rest + '/' + st.table;
+      let p = [];
+      if (st.method === 'GET' && st.cols) p.push('select=' + encodeURIComponent(st.cols));
+      if (st.order) p.push('order=' + st.order);
+      if (st.filters.length) p = p.concat(st.filters);
+      if (p.length) url += '?' + p.join('&');
+      const opt = { method: st.method, headers: hdr(st.method === 'POST' ? { Prefer: 'return=representation' } : null) };
+      if (st.body != null) opt.body = JSON.stringify(st.body);
+      return fetch(url, opt).then(function (r) {
+        return r.text().then(function (t) {
+          let data = null;
+          if (t) { try { data = JSON.parse(t); } catch (_) { data = t; } }
+          if (!r.ok) return { data: null, error: { message: (data && data.message) || ('HTTP ' + r.status) } };
+          return { data: data, error: null };
+        });
+      }).catch(function (e) { return { data: null, error: { message: (e && e.message) || 'فشل الاتصال بالشبكة' } }; });
+    }
+    const storage = {
+      from: function (bucket) {
+        return {
+          upload: function (path, file, o) {
+            o = o || {};
+            const url = baseUrl + '/storage/v1/object/' + bucket + '/' + path;
+            return fetch(url, {
+              method: 'POST',
+              headers: {
+                apikey: key,
+                'Authorization': 'Bearer ' + key,
+                'x-upsert': o.upsert ? 'true' : 'false',
+                'cache-control': 'max-age=' + (o.cacheControl || '3600'),
+                'Content-Type': file.type || 'application/octet-stream'
+              },
+              body: file
+            }).then(function (r) {
+              if (!r.ok) return r.text().then(function (t) { return { error: { message: 'HTTP ' + r.status + ' ' + t } }; });
+              return { error: null };
+            }).catch(function (e) { return { error: { message: (e && e.message) || 'فشل رفع الملف' } }; });
+          },
+          getPublicUrl: function (path) {
+            return { data: { publicUrl: baseUrl + '/storage/v1/object/public/' + bucket + '/' + path } };
+          }
+        };
+      }
+    };
+    return { from: qb, storage: storage };
+  }
+
+  const SB = (CFG.SUPABASE_URL && CFG.SUPABASE_KEY) ? makeClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY) : null;
+  const SKEY = 'mshati_admin_ok';
+
+  const CAT = { structural: 'إنشائية', finishing: 'تشطيبات', landscape: 'زراعة وتنسيق', heritage: 'تراث وترميم' };
+  const ICON = {
+    edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    del: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
+    img: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',
+    up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>',
+    wa: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.748-.607zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>'
+  };
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  const fmtDate = (d) => { try { return new Date(d).toLocaleString('ar-SA', { dateStyle: 'medium', timeStyle: 'short' }); } catch (e) { return d; } };
+
+  function toast(msg, isErr) {
+    let t = $('.toast');
+    if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+    t.className = 'toast' + (isErr ? ' err' : '');
+    t.innerHTML = '<span></span>'; t.querySelector('span').textContent = msg;
+    requestAnimationFrame(() => t.classList.add('show'));
+    clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 4200);
+  }
+
+  /* ---------- Login ---------- */
+  const gate = $('#login-gate'), dash = $('#dashboard');
+  function showDash() { gate.hidden = true; dash.hidden = false; initDashboard(); }
+  function isAuthed() { try { return sessionStorage.getItem(SKEY) === '1'; } catch (e) { return false; } }
+
+  if (isAuthed()) showDash();
+
+  // يطبّع كلمة المرور: يحوّل الأرقام العربية/الفارسية إلى لاتينية،
+  // ويحذف المسافات، ويتجاهل حالة الأحرف — حتى يقبل الدخول مهما كانت لوحة المفاتيح.
+  function normPass(s) {
+    return String(s == null ? '' : s)
+      .replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660))
+      .replace(/[\u06F0-\u06F9]/g, d => String(d.charCodeAt(0) - 0x06F0))
+      .replace(/\s+/g, '')
+      .toLowerCase();
+  }
+
+  function tryLogin() {
+    const passEl = $('#admin-pass');
+    const errEl = $('#login-error');
+    const val = normPass(passEl ? passEl.value : '');
+    const pass = normPass(CFG.ADMIN_PASSWORD);
+    if (val === pass) {
+      try { sessionStorage.setItem(SKEY, '1'); } catch (e2) {}
+      if (errEl) errEl.textContent = '';
+      showDash();
+    } else {
+      if (errEl) errEl.textContent = 'كلمة المرور غير صحيحة.';
+      if (passEl) { passEl.value = ''; passEl.focus(); }
+    }
+  }
+
+  // إتاحة دالة الدخول عالمياً كي يعمل زر onclick حتى لو تأخّر أي شيء آخر
+  window.mshatiLogin = tryLogin;
+
+  const loginForm = $('#login-form');
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => { e.preventDefault(); tryLogin(); });
+  }
+  // احتياط إضافي: زر الدخول + مفتاح Enter داخل الحقل
+  const loginBtn = $('#login-btn');
+  if (loginBtn) loginBtn.addEventListener('click', (e) => { e.preventDefault(); tryLogin(); });
+  const passInput = $('#admin-pass');
+  if (passInput) passInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); tryLogin(); } });
+
+  const logoutBtn = $('#logout-btn');
+  if (logoutBtn) logoutBtn.addEventListener('click', () => {
+    try { sessionStorage.removeItem(SKEY); } catch (e) {}
+    location.reload();
+  });
+
+  /* ---------- Tabs ---------- */
+  $$('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
+    $$('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    $$('.tab-panel').forEach(p => p.hidden = (p.id !== 'tab-' + tab));
+  }));
+
+  document.addEventListener('click', (e) => {
+    const r = e.target.closest('[data-refresh]');
+    if (!r) return;
+    const map = { analytics: loadAnalytics, projects: loadProjects, images: loadImages, quotes: loadQuotes };
+    (map[r.dataset.refresh] || (() => {}))();
+  });
+
+  /* ---------- Init ---------- */
+  let inited = false;
+  function initDashboard() {
+    if (inited) return; inited = true;
+    if (!SB) { toast('تعذّر الاتصال بقاعدة البيانات. تحقّقي من الاتصال بالإنترنت.', true); return; }
+    loadAnalytics(); loadProjects(); loadImages(); loadQuotes();
+    bindProjectForm();
+  }
+
+  /* ---------- ضغط الصور تلقائياً قبل الرفع ----------
+     يصغّر أي صورة كبيرة إلى عرض مناسب للويب (حد أقصى 1600px) ويحوّلها
+     إلى JPEG مضغوط — فيصير حجمها أصغر بكثير وتفتح بسرعة للزوار.
+     الصور الصغيرة أو غير الصور (مثل SVG) تُترك كما هي. */
+  function compressImage(file, maxW, quality) {
+    return new Promise(function (resolve) {
+      if (!file || !file.type || !/^image\/(jpeg|jpg|png|webp)$/i.test(file.type)) { resolve(file); return; }
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        if (!w || !h) { resolve(file); return; }
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(function (blob) {
+          // إذا لم يصغر فعلاً، نُبقي الأصل
+          if (!blob || blob.size >= file.size) { resolve(file); return; }
+          const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+          try { resolve(new File([blob], name, { type: 'image/jpeg' })); }
+          catch (e) { blob.name = name; resolve(blob); }
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
+  /* ---------- Storage upload ---------- */
+  async function uploadFile(file, prefix) {
+    file = await compressImage(file, 1600, 0.82);          // ضغط تلقائي
+    const clean = (file.name || 'image.jpg').replace(/[^\w.\-]/g, '_');
+    const path = `${prefix}/${Date.now()}-${clean}`;
+    const { error } = await SB.storage.from(BUCKET).upload(path, file, { upsert: true, cacheControl: '31536000' });
+    if (error) throw error;
+    const { data } = SB.storage.from(BUCKET).getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  /* ================= ANALYTICS ================= */
+  async function loadAnalytics() {
+    const cards = $('#stat-cards'), bars = $('#page-bars');
+    cards.innerHTML = '<div class="state-msg">جارٍ التحميل…</div>'; bars.innerHTML = '';
+    const [views, quotes, projects] = await Promise.all([
+      SB.from('page_views').select('page'),
+      SB.from('quote_requests').select('id'),
+      SB.from('projects').select('id')
+    ]);
+    const v = views.data || [];
+    const counts = {};
+    v.forEach(r => { counts[r.page] = (counts[r.page] || 0) + 1; });
+    const labels = { index: 'الرئيسية', about: 'من نحن', services: 'خدماتنا', projects: 'المشاريع', process: 'خط السير', contact: 'تواصل معنا', admin: 'لوحة التحكم' };
+    cards.innerHTML = [
+      ['إجمالي الزيارات', v.length],
+      ['طلبات عروض الأسعار', (quotes.data || []).length],
+      ['المشاريع المنشورة', (projects.data || []).length],
+      ['عدد الصفحات المُزارة', Object.keys(counts).length]
+    ].map(([l, n]) => `<div class="stat-card"><div class="stat-num">${n}</div><div class="stat-label">${l}</div></div>`).join('');
+
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const max = entries.length ? entries[0][1] : 1;
+    bars.innerHTML = entries.length
+      ? entries.map(([p, n]) => `
+        <div class="page-bar">
+          <div class="pb-top"><b>${esc(labels[p] || p)}</b><span>${n} زيارة</span></div>
+          <div class="pb-track"><div class="pb-fill" style="width:${Math.round(n / max * 100)}%"></div></div>
+        </div>`).join('')
+      : '<div class="state-msg">لا توجد زيارات مسجّلة بعد.</div>';
+  }
+
+  /* ================= PROJECTS ================= */
+  async function loadProjects() {
+    const list = $('#projects-admin-list');
+    list.innerHTML = '<div class="state-msg">جارٍ التحميل…</div>';
+    const { data, error } = await SB.from('projects').select('*').order('sort', { ascending: true });
+    if (error) { list.innerHTML = '<div class="state-msg">تعذّر تحميل المشاريع.</div>'; return; }
+    if (!data.length) { list.innerHTML = '<div class="state-msg">لا توجد مشاريع بعد.</div>'; return; }
+    list.innerHTML = data.map(p => `
+      <div class="admin-item" data-id="${p.id}">
+        <div class="thumb" ${p.image_url ? `style="background-image:url('${esc(p.image_url)}')"` : ''}>${p.image_url ? '' : ICON.img}</div>
+        <div class="meta">
+          <b>${esc(p.title)}</b>
+          <small>${esc((p.description || '').slice(0, 70))}</small>
+          <span class="cat-tag">${CAT[p.category] || p.category}</span>
+        </div>
+        <div class="ops">
+          <button class="icon-btn" data-edit aria-label="تعديل">${ICON.edit}</button>
+          <button class="icon-btn del" data-del aria-label="حذف">${ICON.del}</button>
+        </div>
+      </div>`).join('');
+
+    list._data = data;
+    $$('[data-edit]', list).forEach(b => b.addEventListener('click', () => {
+      const id = b.closest('.admin-item').dataset.id;
+      const p = data.find(x => String(x.id) === String(id));
+      if (p) fillProjectForm(p);
+    }));
+    $$('[data-del]', list).forEach(b => b.addEventListener('click', async () => {
+      const id = b.closest('.admin-item').dataset.id;
+      if (!confirm('حذف هذا المشروع نهائياً؟')) return;
+      const { error } = await SB.from('projects').delete().eq('id', id);
+      if (error) return toast('تعذّر الحذف.', true);
+      toast('تم حذف المشروع.'); loadProjects(); loadAnalytics();
+    }));
+  }
+
+  function fillProjectForm(p) {
+    const f = $('#project-form');
+    f.id.value = p.id; f.title.value = p.title || ''; f.description.value = p.description || '';
+    f.category.value = p.category || 'structural'; f.sort.value = p.sort || 0;
+    $('#proj-form-title').textContent = 'تعديل المشروع';
+    $('#proj-reset').hidden = false;
+    const prev = $('#proj-preview');
+    if (p.image_url) { prev.hidden = false; prev.querySelector('img').src = p.image_url; }
+    else { prev.hidden = true; }
+    f._existingImage = p.image_url || '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function resetProjectForm() {
+    const f = $('#project-form'); f.reset(); f.id.value = '';
+    f._existingImage = ''; $('#proj-preview').hidden = true;
+    $('#proj-form-title').textContent = 'إضافة مشروع جديد';
+    $('#proj-reset').hidden = true;
+  }
+
+  function bindProjectForm() {
+    const f = $('#project-form');
+    $('#proj-reset').addEventListener('click', resetProjectForm);
+    $('#proj-image').addEventListener('change', (e) => {
+      const file = e.target.files[0]; const prev = $('#proj-preview');
+      if (file) { prev.hidden = false; prev.querySelector('img').src = URL.createObjectURL(file); }
+    });
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = f.querySelector('button[type=submit]'); const orig = btn.textContent;
+      btn.disabled = true; btn.textContent = 'جارٍ الحفظ…';
+      try {
+        let image_url = f._existingImage || null;
+        const file = $('#proj-image').files[0];
+        if (file) image_url = await uploadFile(file, 'projects');
+        const row = {
+          title: f.title.value.trim(),
+          description: f.description.value.trim(),
+          category: f.category.value,
+          sort: parseInt(f.sort.value, 10) || 0,
+          image_url
+        };
+        let error;
+        if (f.id.value) ({ error } = await SB.from('projects').update(row).eq('id', f.id.value));
+        else ({ error } = await SB.from('projects').insert([row]));
+        if (error) throw error;
+        toast(f.id.value ? 'تم تحديث المشروع.' : 'تمت إضافة المشروع.');
+        resetProjectForm(); loadProjects(); loadAnalytics();
+      } catch (err) {
+        toast('حدث خطأ أثناء الحفظ: ' + (err.message || ''), true);
+      } finally { btn.disabled = false; btn.textContent = orig; }
+    });
+  }
+
+  /* ================= IMAGES ================= */
+  async function loadImages() {
+    const wrap = $('#image-slots');
+    wrap.innerHTML = '<div class="state-msg">جارٍ التحميل…</div>';
+    const { data, error } = await SB.from('site_images').select('*').order('key', { ascending: true });
+    if (error) { wrap.innerHTML = '<div class="state-msg">تعذّر تحميل الصور.</div>'; return; }
+    if (!data.length) { wrap.innerHTML = '<div class="state-msg">لا توجد مواضع صور.</div>'; return; }
+    wrap.innerHTML = data.map(s => `
+      <div class="slot-card" data-key="${esc(s.key)}">
+        <div class="slot-img" ${s.image_url ? `style="background-image:url('${esc(s.image_url)}')"` : ''}>${s.image_url ? '' : ICON.img}</div>
+        <div class="slot-body">
+          <b>${esc(s.label || s.key)}</b>
+          <small>${esc(s.key)}</small>
+          <div class="slot-upload">
+            <label>${ICON.up}<span>${s.image_url ? 'تغيير الصورة' : 'رفع صورة'}</span>
+              <input type="file" accept="image/*" data-slot-input>
+            </label>
+          </div>
+        </div>
+      </div>`).join('');
+
+    $$('[data-slot-input]', wrap).forEach(inp => inp.addEventListener('change', async (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      const card = inp.closest('.slot-card'); const key = card.dataset.key;
+      card.classList.add('busy');
+      try {
+        const url = await uploadFile(file, 'slots/' + key);
+        const { error: upErr } = await SB.from('site_images').update({ image_url: url, updated_at: new Date().toISOString() }).eq('key', key);
+        if (upErr) throw upErr;
+        card.querySelector('.slot-img').style.backgroundImage = `url('${url}')`;
+        card.querySelector('.slot-img').innerHTML = '';
+        toast('تم تحديث الصورة.');
+      } catch (err) {
+        toast('تعذّر رفع الصورة: ' + (err.message || ''), true);
+      } finally { card.classList.remove('busy'); }
+    }));
+  }
+
+  /* ================= QUOTES ================= */
+  async function loadQuotes() {
+    const list = $('#quotes-list');
+    list.innerHTML = '<div class="state-msg">جارٍ التحميل…</div>';
+    const { data, error } = await SB.from('quote_requests').select('*').order('created_at', { ascending: false });
+    if (error) { list.innerHTML = '<div class="state-msg">تعذّر تحميل الطلبات.</div>'; return; }
+    if (!data.length) { list.innerHTML = '<div class="state-msg">لا توجد طلبات بعد.</div>'; return; }
+    list.innerHTML = data.map(q => {
+      const phone = (q.phone || '').replace(/\D/g, '');
+      const wa = phone ? `https://wa.me/${phone.startsWith('0') ? '966' + phone.slice(1) : phone}` : '';
+      return `
+      <div class="quote-card">
+        <div class="qc-head"><b>${esc(q.name || 'بدون اسم')}</b><span class="qc-date">${fmtDate(q.created_at)}</span></div>
+        <div class="qc-row"><span>الجوال:</span> ${esc(q.phone || '—')}</div>
+        <div class="qc-row"><span>نوع المشروع:</span> ${esc(q.project_type || '—')}</div>
+        ${q.message ? `<div class="qc-msg">${esc(q.message)}</div>` : ''}
+        ${wa ? `<div class="qc-actions"><a class="wa-link" href="${wa}" target="_blank" rel="noopener">${ICON.wa} تواصل عبر واتساب</a></div>` : ''}
+      </div>`;
+    }).join('');
+  }
+})();
+</script>
+</body>
+</html>
